@@ -22,6 +22,10 @@
 #import "GBNotificationProtocol.h"
 #import <GBToolbox/GBToolbox.h>
 
+static NSString * const kGrowlNotificationName = @"Standard Notification";
+static NSString * const kHandlerKey = @"kHandlerKey";
+static NSString * const kNotificationKey = @"kNotificationKey";
+
 @interface GBNotificationCenter ()
 
 @property (strong, nonatomic) NSMutableDictionary                   *postedNotifications;
@@ -42,12 +46,15 @@ _lazy(NSMutableDictionary, postedNotifications, _postedNotifications)
 
 -(id)init {
     if (self = [super init]) {
-        //set up native notifications is if notification center is available
+        //set up native notifications if notification center is available
         if (IsClassAvailable(NSUserNotificationCenter)) {
             self.isLionNotificationCenterAvailable = YES;
             self.associatedLionNotificationCenter = [NSUserNotificationCenter defaultUserNotificationCenter];//can be replaced by another in the future if needed
             self.associatedLionNotificationCenter.delegate = self;
         }
+        
+        //growl
+        [GrowlApplicationBridge setGrowlDelegate:self];
         
         //initialise
         self.shouldRemoveDeliveredNotificationsFromNotificationCenter = YES;
@@ -59,25 +66,34 @@ _lazy(NSMutableDictionary, postedNotifications, _postedNotifications)
 
 #pragma mark - public API
 
--(void)postNotification:(id<GBNotification>)notification withNativePostedNotification:(id *)postedNotification {
+-(void)postNotification:(id<GBNotification>)notification withPostedNotificationIdentifier:(id *)postedNotificationIdentifier {
     //dont even send it if the policy is never show.
     if (self.showPolicy != GBNotificationCenterShowPolicyNeverShow) {
         //format it with the message formatter
         NSString *title = [notification titleForNotification];
-        NSString *content = [notification bodyForNotification];
+        NSString *body = [notification bodyForNotification];
         
         //publish it via Lion native notifications
         if (self.isLionNotificationCenterAvailable) {
             NSUserNotification *userNotification = [[NSUserNotification alloc] init];
             userNotification.title = title;
-            userNotification.informativeText = content;
+            userNotification.informativeText = body;
             userNotification.soundName = NSUserNotificationDefaultSoundName;
             [self.associatedLionNotificationCenter deliverNotification:userNotification];
             
             //set output parameter
-            *postedNotification = userNotification;
+            *postedNotificationIdentifier = userNotification;
         }
-        //maybe add growl here in other cases
+        //growl
+        else {
+            l(@"GRIZ: post to growl");
+            NSString *growlNotificationIdentifier = ((NSObject *)notification).pointerAddress;
+            
+            [GrowlApplicationBridge notifyWithTitle:title description:body notificationName:kGrowlNotificationName iconData:nil priority:0 isSticky:NO clickContext:growlNotificationIdentifier];
+            
+            //set output parameter
+            *postedNotificationIdentifier = growlNotificationIdentifier;
+        }
     }
 }
 
@@ -87,14 +103,11 @@ _lazy(NSMutableDictionary, postedNotifications, _postedNotifications)
     }
     else {
         //post it
-        id nativePostedNotification;
-        [self postNotification:notification withNativePostedNotification:&nativePostedNotification];
+        NSString *postedNotificationIdentifier;
+        [self postNotification:notification withPostedNotificationIdentifier:&postedNotificationIdentifier];
         
-        //if its a lion notificaion
-        if ([nativePostedNotification isKindOfClass:[NSUserNotification class]]) {
-            //remember notification so we can call appropriate handler
-            self.postedNotifications[nativePostedNotification] = @{@"handler": handler ? [handler copy] : [NSNull null], @"notification": notification};
-        }
+        //remember notification so we can call appropriate handler
+        self.postedNotifications[postedNotificationIdentifier] = @{kHandlerKey: handler ? [handler copy] : [NSNull null], kNotificationKey: notification};
     }
 }
 
@@ -102,25 +115,25 @@ _lazy(NSMutableDictionary, postedNotifications, _postedNotifications)
     [self postNotification:notification withHandler:nil];
 }
 
-#pragma mark - lion notification center delegate
+#pragma mark - private API
 
--(void)userNotificationCenter:(NSUserNotificationCenter *)center didActivateNotification:(NSUserNotification *)nativeNotification {
+-(void)_handleNotificationClickWithNotificationIdentifier:(id)notificationIdentifier {
     //look for the native notification and the handler
     id<GBNotification> notification;
     BOOL isHandlerDefined = NO;
     
-    for (id aNativeNotification in self.postedNotifications) {
-        if ([nativeNotification isEqualTo:aNativeNotification]) {
+    for (id aNativeNotificationIdentifier in self.postedNotifications) {
+        if ([notificationIdentifier isEqualTo:aNativeNotificationIdentifier]) {
             //fetch the moving parts
-            notification = self.postedNotifications[aNativeNotification][@"notification"];
-            id storedHandler = self.postedNotifications[aNativeNotification][@"handler"];
+            notification = self.postedNotifications[aNativeNotificationIdentifier][kNotificationKey];
+            id storedHandler = self.postedNotifications[aNativeNotificationIdentifier][kHandlerKey];
             
             //call handler if its not nil or NSNull null
             if (storedHandler && storedHandler != [NSNull null]) {
                 void(^handler)(id<GBNotification> notification) = storedHandler;
                 handler(notification);
             }
-
+            
             //sentinel
             isHandlerDefined = YES;
             
@@ -129,17 +142,24 @@ _lazy(NSMutableDictionary, postedNotifications, _postedNotifications)
         }
     }
     
-    //if a handler was defined, remove it from the dict to clean up mem, otherwise post an unhandled notification to the delegate
+    //if a handler was defined, remove it from the dict to clean up mem
     if (isHandlerDefined) {
         //remove it from the list if it exists
-        [self.postedNotifications removeObjectForKey:nativeNotification];
+        [self.postedNotifications removeObjectForKey:notificationIdentifier];
     }
+    //if not defined, post an unhandled notification to the delegate
     else {
         //call delegate method
         if ([self.delegate respondsToSelector:@selector(notificationController:didActivateWithUnhandledNotification:andNativeNotification:)]) {
-            [self.delegate notificationController:self didActivateWithUnhandledNotification:notification andNativeNotification:nativeNotification];
+            [self.delegate notificationController:self didActivateWithUnhandledNotification:notification andNativeNotification:notificationIdentifier];
         }
     }
+}
+
+#pragma mark - lion notification center delegate
+
+-(void)userNotificationCenter:(NSUserNotificationCenter *)center didActivateNotification:(NSUserNotification *)nativeNotification {
+    [self _handleNotificationClickWithNotificationIdentifier:nativeNotification];
     
     //remove notification from notification center
     if (self.shouldRemoveDeliveredNotificationsFromNotificationCenter) {
@@ -156,6 +176,18 @@ _lazy(NSMutableDictionary, postedNotifications, _postedNotifications)
         case GBNotificationCenterShowPolicyAlwaysShow:
             return YES;
     }
+}
+
+#pragma mark - growl delegate
+
+-(NSDictionary *)registrationDictionaryForGrowl {
+    return @{GROWL_NOTIFICATIONS_ALL: @[kGrowlNotificationName],
+             GROWL_NOTIFICATIONS_DEFAULT: @[kGrowlNotificationName]};
+}
+
+-(void)growlNotificationWasClicked:(id)clickContext {
+    l(@"GRIZ: growl notification clicked");
+    [self _handleNotificationClickWithNotificationIdentifier:clickContext];
 }
 
 @end

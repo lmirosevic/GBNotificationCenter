@@ -99,6 +99,10 @@ Dependencies
 
 Add to your project's workspace, add dependency for GBToolbox-OSX, link with your binary, add "copy file" step to copy framework into bundle.
 
+* Growl.framework
+
+It's included with GBNotificationCenter, but you must copy the framework to your app's bundle by dragging the framework out of the GBNotificationCenter subproject into your super project (making sure to **deselect** the "Copy items into destination group's folder" checkbox), and adding it to the "copy file" step.
+
 Copyright & License
 ------------
 

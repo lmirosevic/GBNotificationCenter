@@ -22,6 +22,8 @@
 #import "GBNotificationProtocol.h"
 #import "GBSimpleNotification.h"
 
+#import <Growl/Growl.h>
+
 @protocol GBNotification;
 @protocol GBNotificationCenterDelegate;
 
@@ -31,12 +33,12 @@ typedef enum {
     GBNotificationCenterShowPolicyNeverShow,
 } GBNotificationCenterShowPolicy;
 
-@interface GBNotificationCenter : NSObject <NSUserNotificationCenterDelegate>
+@interface GBNotificationCenter : NSObject <NSUserNotificationCenterDelegate, GrowlApplicationBridgeDelegate>
 
-@property (weak, nonatomic) id<GBNotificationCenterDelegate>        delegate;
-@property (assign, nonatomic) GBNotificationCenterShowPolicy        showPolicy;
-@property (assign, nonatomic, readonly) BOOL                        isLionNotificationCenterAvailable;
-@property (assign, nonatomic) BOOL                                  shouldRemoveDeliveredNotificationsFromNotificationCenter;
+@property (unsafe_unretained, nonatomic) id<GBNotificationCenterDelegate>       delegate;
+@property (assign, nonatomic) GBNotificationCenterShowPolicy                    showPolicy;
+@property (assign, nonatomic, readonly) BOOL                                    isLionNotificationCenterAvailable;
+@property (assign, nonatomic) BOOL                                              shouldRemoveDeliveredNotificationsFromNotificationCenter;
 
 //use the default controller:
 +(GBNotificationCenter *)defaultCenter;
@@ -46,7 +48,7 @@ typedef enum {
 //posting API
 -(void)postNotification:(id<GBNotification>)notification;
 -(void)postNotification:(id<GBNotification>)notification withHandler:(void(^)(id<GBNotification> notification))handler;
--(void)postNotification:(id<GBNotification>)notification withNativePostedNotification:(id *)postedNotification;
+-(void)postNotification:(id<GBNotification>)notification withPostedNotificationIdentifier:(id *)postedNotificationIdentifier;
 
 @end
 

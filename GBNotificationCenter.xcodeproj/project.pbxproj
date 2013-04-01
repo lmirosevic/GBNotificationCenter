@@ -14,6 +14,7 @@
 		8AEDA4941709BB87004D89FE /* GBSimpleNotification.h in Headers */ = {isa = PBXBuildFile; fileRef = 8AEDA48F1709BB87004D89FE /* GBSimpleNotification.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8AEDA4951709BB87004D89FE /* GBSimpleNotification.m in Sources */ = {isa = PBXBuildFile; fileRef = 8AEDA4901709BB87004D89FE /* GBSimpleNotification.m */; };
 		8AEDA4A91709BC10004D89FE /* GBToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AEDA4A21709BBDF004D89FE /* GBToolbox.framework */; };
+		8AEDA4DF1709CA09004D89FE /* Growl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AEDA4DE1709CA09004D89FE /* Growl.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +61,7 @@
 		8AEDA48F1709BB87004D89FE /* GBSimpleNotification.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GBSimpleNotification.h; sourceTree = "<group>"; };
 		8AEDA4901709BB87004D89FE /* GBSimpleNotification.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GBSimpleNotification.m; sourceTree = "<group>"; };
 		8AEDA4971709BBDF004D89FE /* GBToolbox.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GBToolbox.xcodeproj; path = ../GBToolbox/GBToolbox.xcodeproj; sourceTree = "<group>"; };
+		8AEDA4DE1709CA09004D89FE /* Growl.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Growl.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,6 +71,7 @@
 			files = (
 				8AEDA4A91709BC10004D89FE /* GBToolbox.framework in Frameworks */,
 				8AEDA4781709BB13004D89FE /* Cocoa.framework in Frameworks */,
+				8AEDA4DF1709CA09004D89FE /* Growl.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +81,7 @@
 		8AEDA46A1709BB13004D89FE = {
 			isa = PBXGroup;
 			children = (
+				8AEDA4DB1709C9F4004D89FE /* 3rd Party Frameworks */,
 				8AEDA4961709BBD3004D89FE /* Libraries */,
 				8AEDA47D1709BB13004D89FE /* GBNotificationCenter */,
 				8AEDA4761709BB13004D89FE /* Frameworks */,
@@ -149,6 +153,14 @@
 				8AEDA4A21709BBDF004D89FE /* GBToolbox.framework */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		8AEDA4DB1709C9F4004D89FE /* 3rd Party Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8AEDA4DE1709CA09004D89FE /* Growl.framework */,
+			);
+			name = "3rd Party Frameworks";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -300,7 +312,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -328,7 +340,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 			};
@@ -340,6 +352,10 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				FRAMEWORK_VERSION = A;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				INFOPLIST_FILE = "GBNotificationCenter/GBNotificationCenter-Info.plist";
@@ -355,6 +371,10 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				FRAMEWORK_VERSION = A;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				INFOPLIST_FILE = "GBNotificationCenter/GBNotificationCenter-Info.plist";
