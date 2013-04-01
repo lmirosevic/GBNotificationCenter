@@ -1,7 +1,7 @@
 GBNotificationCenter
 ============
 
-Abstracts away Lion's native NSUserNotificationCenter and Growl under a simple block based interface.
+A clean & elegant block based API for user notifications that uses Lion's native NSUserNotificationCenter on OS X 10.8+ and falls back to Growl for older versions.
 
 Simple usage
 ------------
