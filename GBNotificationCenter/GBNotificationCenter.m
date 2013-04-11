@@ -75,7 +75,6 @@ _lazy(NSMutableDictionary, postedNotifications, _postedNotifications)
         
         //publish it via Lion native notifications
         if (self.isLionNotificationCenterAvailable) {
-            l(@"GRIZ: post to Lion");//foo
             NSUserNotification *userNotification = [[NSUserNotification alloc] init];
             userNotification.title = title;
             userNotification.informativeText = body;
@@ -87,7 +86,6 @@ _lazy(NSMutableDictionary, postedNotifications, _postedNotifications)
         }
         //growl
         else {
-            l(@"GRIZ: post to growl");//foo look for similar also
             NSString *growlNotificationIdentifier = ((NSObject *)notification).pointerAddress;
             
             [GrowlApplicationBridge notifyWithTitle:title description:body notificationName:kGrowlNotificationName iconData:nil priority:0 isSticky:NO clickContext:growlNotificationIdentifier];
@@ -187,7 +185,6 @@ _lazy(NSMutableDictionary, postedNotifications, _postedNotifications)
 }
 
 -(void)growlNotificationWasClicked:(id)clickContext {
-    l(@"GRIZ: growl notification clicked");//foo
     [self _handleNotificationClickWithNotificationIdentifier:clickContext];
 }
 
