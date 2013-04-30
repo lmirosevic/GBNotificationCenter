@@ -90,7 +90,7 @@ A notification can be any object which conforms to the `GBNotification` protocol
 
 The reason behind this design choice is that it decouples the library's underlying display and handling logic from the formatting logic, thus allowing GBNotificationCenter to present an extremely generic interface, while granting your application full control over how notifications are displayed. It lets you "bolt on" notifications onto your existing objects, and provides a clean way for you to handle localisations, formatting, locales, etc.
 
-You can create multiple GBNotificationCenter instances using `[GBNotificationCenter alloc] init]`, each with it's own delegate, showPolicy and shouldRemoveDeliveredNotificationsFromNotificationCenter.
+You can create multiple GBNotificationCenter instances using `[[GBNotificationCenter alloc] init]`, each with it's own delegate, showPolicy and shouldRemoveDeliveredNotificationsFromNotificationCenter.
 
 Dependencies
 ------------
