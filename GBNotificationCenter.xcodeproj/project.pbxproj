@@ -14,7 +14,6 @@
 		8AEDA4931709BB87004D89FE /* GBNotificationProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 8AEDA48E1709BB87004D89FE /* GBNotificationProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8AEDA4941709BB87004D89FE /* GBSimpleNotification.h in Headers */ = {isa = PBXBuildFile; fileRef = 8AEDA48F1709BB87004D89FE /* GBSimpleNotification.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8AEDA4951709BB87004D89FE /* GBSimpleNotification.m in Sources */ = {isa = PBXBuildFile; fileRef = 8AEDA4901709BB87004D89FE /* GBSimpleNotification.m */; };
-		8AEDA4A91709BC10004D89FE /* GBToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AEDA4A21709BBDF004D89FE /* GBToolbox.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,7 +68,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8AEDA4A91709BC10004D89FE /* GBToolbox.framework in Frameworks */,
 				8AEDA4781709BB13004D89FE /* Cocoa.framework in Frameworks */,
 				8A3465F61730044F00EE1621 /* Growl.framework in Frameworks */,
 			);
