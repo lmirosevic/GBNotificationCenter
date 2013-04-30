@@ -48,7 +48,6 @@ typedef enum {
 //posting API
 -(void)postNotification:(id<GBNotification>)notification;
 -(void)postNotification:(id<GBNotification>)notification withHandler:(void(^)(id<GBNotification> notification))handler;
--(void)postNotification:(id<GBNotification>)notification withPostedNotificationIdentifier:(id *)postedNotificationIdentifier;
 
 @end
 

@@ -26,6 +26,8 @@ static NSString * const kGrowlNotificationName = @"Standard Notification";
 static NSString * const kHandlerKey = @"kHandlerKey";
 static NSString * const kNotificationKey = @"kNotificationKey";
 
+static NSString * const kNSUserNotificationIdentifierKey = @"kNSUserNotificationIdentifierKey";
+
 @interface GBNotificationCenter ()
 
 @property (strong, nonatomic) NSMutableDictionary                   *postedNotifications;
@@ -66,55 +68,72 @@ _lazy(NSMutableDictionary, postedNotifications, _postedNotifications)
 
 #pragma mark - public API
 
--(void)postNotification:(id<GBNotification>)notification withPostedNotificationIdentifier:(id *)postedNotificationIdentifier {
-    //dont even send it if the policy is to never show
-    if (self.showPolicy != GBNotificationCenterShowPolicyNeverShow) {
-        //format it with the message formatter
-        NSString *title = [notification titleForNotification];
-        NSString *body = [notification bodyForNotification];
-        
-        //publish it via Lion native notifications
-        if (self.isLionNotificationCenterAvailable) {
-            NSUserNotification *userNotification = [[NSUserNotification alloc] init];
-            userNotification.title = title;
-            userNotification.informativeText = body;
-            userNotification.soundName = NSUserNotificationDefaultSoundName;
-            [self.associatedLionNotificationCenter deliverNotification:userNotification];
-            
-            //set output parameter
-            *postedNotificationIdentifier = userNotification;
-        }
-        //growl
-        else {
-            NSString *growlNotificationIdentifier = ((NSObject *)notification).pointerAddress;
-            
-            [GrowlApplicationBridge notifyWithTitle:title description:body notificationName:kGrowlNotificationName iconData:nil priority:0 isSticky:NO clickContext:growlNotificationIdentifier];
-            
-            //set output parameter
-            *postedNotificationIdentifier = growlNotificationIdentifier;
-        }
-    }
+-(void)postNotification:(id<GBNotification>)notification {
+    [self _postNotification:notification shouldStick:NO withHandler:nil];
 }
 
 -(void)postNotification:(id<GBNotification>)notification withHandler:(void(^)(id<GBNotification> notification))handler {
+    [self _postNotification:notification shouldStick:NO withHandler:handler];
+}
+
+#pragma mark - private API
+
+//this is private because stickiness doesn't work properly with the current Lion API... might change in the future so will leave it here
+-(void)_postNotification:(id<GBNotification>)notification shouldStick:(BOOL)shouldStick withHandler:(void(^)(id<GBNotification> notification))handler {
     if (!notification) {
         @throw [NSException exceptionWithName:@"GBNotificationCenter" reason:@"must pass in non-nil notification" userInfo:nil];
     }
     else {
         //post it
         NSString *postedNotificationIdentifier;
-        [self postNotification:notification withPostedNotificationIdentifier:&postedNotificationIdentifier];
+        [self _postNotification:notification shouldStick:shouldStick withPostedNotificationIdentifier:&postedNotificationIdentifier];
         
         //remember notification so we can call appropriate handler
         self.postedNotifications[postedNotificationIdentifier] = @{kHandlerKey: handler ? [handler copy] : [NSNull null], kNotificationKey: notification};
     }
 }
 
--(void)postNotification:(id<GBNotification>)notification {
-    [self postNotification:notification withHandler:nil];
+-(void)_postNotification:(id<GBNotification>)notification shouldStick:(BOOL)shouldStick withPostedNotificationIdentifier:(id *)postedNotificationIdentifier {
+    //foo this method needs to implement showing of sticky notifications //luka
+    
+    //dont even send it if the policy is to never show
+    if (self.showPolicy != GBNotificationCenterShowPolicyNeverShow) {
+        //format it with the message formatter
+        NSString *title = [notification titleForNotification];
+        NSString *body = [notification bodyForNotification];
+        
+        //Lion native notifications
+        if (self.isLionNotificationCenterAvailable) {
+            NSUserNotification *userNotification = [[NSUserNotification alloc] init];
+            
+            NSString *notificationIdentifier = userNotification.pointerAddress;
+            
+            userNotification.title = title;
+            userNotification.informativeText = body;
+            userNotification.soundName = NSUserNotificationDefaultSoundName;
+            userNotification.userInfo = @{kNSUserNotificationIdentifierKey: notificationIdentifier};
+            
+            userNotification.hasActionButton = shouldStick;
+            if (shouldStick) {
+                userNotification.actionButtonTitle = _s(@"More info", @"upgrade nag notification action button title");
+            }
+            
+            [self.associatedLionNotificationCenter deliverNotification:userNotification];
+            
+            //set output parameter
+            *postedNotificationIdentifier = notificationIdentifier;
+        }
+        //growl
+        else {
+            NSString *growlNotificationIdentifier = ((NSObject *)notification).pointerAddress;
+            
+            [GrowlApplicationBridge notifyWithTitle:title description:body notificationName:kGrowlNotificationName iconData:nil priority:0 isSticky:shouldStick clickContext:growlNotificationIdentifier];
+            
+            //set output parameter
+            *postedNotificationIdentifier = growlNotificationIdentifier;
+        }
+    }
 }
-
-#pragma mark - private API
 
 -(void)_handleNotificationClickWithNotificationIdentifier:(id)notificationIdentifier {
     //look for the native notification and the handler
@@ -158,7 +177,10 @@ _lazy(NSMutableDictionary, postedNotifications, _postedNotifications)
 #pragma mark - lion notification center delegate
 
 -(void)userNotificationCenter:(NSUserNotificationCenter *)center didActivateNotification:(NSUserNotification *)nativeNotification {
-    [self _handleNotificationClickWithNotificationIdentifier:nativeNotification];
+    NSString *notificationIdentifier;
+    if ((notificationIdentifier = nativeNotification.userInfo[kNSUserNotificationIdentifierKey])) {
+        [self _handleNotificationClickWithNotificationIdentifier:notificationIdentifier];
+    }
     
     //remove notification from notification center
     if (self.shouldRemoveDeliveredNotificationsFromNotificationCenter) {
