@@ -93,9 +93,8 @@ _lazy(NSMutableDictionary, postedNotifications, _postedNotifications)
     }
 }
 
+//this is private because stickiness doesn't work properly with the current Lion API... might change in the future so will leave it here
 -(void)_postNotification:(id<GBNotification>)notification shouldStick:(BOOL)shouldStick withPostedNotificationIdentifier:(id *)postedNotificationIdentifier {
-    //foo this method needs to implement showing of sticky notifications //luka
-    
     //dont even send it if the policy is to never show
     if (self.showPolicy != GBNotificationCenterShowPolicyNeverShow) {
         //format it with the message formatter
