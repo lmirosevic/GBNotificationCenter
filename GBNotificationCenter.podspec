@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = 'GBNotificationCenter'
-  s.version      = '1.0.0'
+  s.version      = '1.0.1'
   s.summary      = 'A clean & elegant block based API for user notifications.'
   s.homepage     = 'https://github.com/lmirosevic/GBNotificationCenter'
   s.license      = 'Apache License, Version 2.0'
@@ -15,5 +15,5 @@ Pod::Spec.new do |s|
   s.preserve_paths            = 'GBNotificationCenter/Growl.framework'
   s.xcconfig                  = { 'FRAMEWORK_SEARCH_PATHS' => '$(inherited)' }
 
-  s.dependency 'GBToolbox'
+  s.dependency 'GBToolbox', '>= 3.13.2'
 end
